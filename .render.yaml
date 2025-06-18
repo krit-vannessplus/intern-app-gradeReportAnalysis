@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: grade-report-ocr
+    env: python
+    buildCommand: |
+      apt-get update && \
+      apt-get install -y poppler-utils tesseract-ocr
+      pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: HF_TOKEN # fill value in Render dashboard
+        sync: false
