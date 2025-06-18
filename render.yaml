@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: grade-report-ocr
+    name: grade-analyze
     env: python
     buildCommand: |
       apt-get update && \
