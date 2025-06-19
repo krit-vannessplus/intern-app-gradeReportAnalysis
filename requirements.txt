@@ -2,4 +2,5 @@ flask
 pdf2image
 pytesseract
 requests
+gunicorn
 Pillow
