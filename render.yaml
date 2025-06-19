@@ -1,7 +1,8 @@
+# render.yaml   ←  no leading dot
 services:
   - type: web
     name: grade-report-analyzer
-    runtime: docker
+    env: docker # ← this exact key/value
     plan: free
     dockerfilePath: Dockerfile
     autoDeploy: true
