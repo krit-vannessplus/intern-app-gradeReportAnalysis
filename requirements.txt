@@ -1,6 +1,5 @@
-flask
-pdf2image
-pytesseract
-requests
-gunicorn
-Pillow
+Flask==2.3.2
+pdf2image==1.16.3
+pytesseract==0.3.10
+requests==2.31.0
+Pillow==10.2.0

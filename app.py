@@ -1,6 +1,7 @@
 import os
 import json
 import tempfile
+import subprocess
 from flask import Flask, request, jsonify
 from pdf2image import convert_from_path
 import pytesseract
@@ -9,10 +10,10 @@ import requests
 # Configure Flask app
 app = Flask(__name__)
 
-# Set Tesseract command path (inside container, assume default)
+# Set Tesseract command path
 pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 
-# Poppler path (inside container, will be available globally)
+# Poppler path
 POPPLER_PATH = "/usr/bin"
 
 def call_huggingface_inference(prompt):
@@ -27,12 +28,7 @@ def call_huggingface_inference(prompt):
     }
 
     payload = {
-        "messages": [
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ],
+        "messages": [{"role": "user", "content": prompt}],
         "model": "deepseek/deepseek-v3-0324"
     }
 
@@ -46,6 +42,37 @@ def call_huggingface_inference(prompt):
         return response_data["choices"][0]["message"]
     except (KeyError, IndexError):
         raise Exception("Unexpected response format from Hugging Face API")
+
+@app.route("/healthcheck", methods=["GET"])
+def healthcheck():
+    try:
+        # Check Tesseract
+        tesseract_output = subprocess.run(
+            [pytesseract.pytesseract.tesseract_cmd, "--version"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True
+        )
+
+        # Check Poppler (using pdfinfo as a proxy)
+        poppler_output = subprocess.run(
+            [os.path.join(POPPLER_PATH, "pdfinfo"), "--version"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True
+        )
+
+        return jsonify({
+            "tesseract": tesseract_output.stdout.decode().strip(),
+            "poppler": poppler_output.stdout.decode().strip(),
+            "status": "OK"
+        })
+
+    except subprocess.CalledProcessError as e:
+        return jsonify({
+            "error": "One or more dependencies are not installed correctly.",
+            "details": e.stderr.decode().strip()
+        }), 500
 
 @app.route("/analyze", methods=["POST"])
 def analyze_pdf():

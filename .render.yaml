@@ -1,7 +1,10 @@
 services:
   - type: web
-    name: grade-analyze-app
+    name: grade-report-analyzer
     env: docker
     plan: free
     dockerfilePath: Dockerfile
     autoDeploy: true
+    envVars:
+      - key: HF_TOKEN
+        sync: false
