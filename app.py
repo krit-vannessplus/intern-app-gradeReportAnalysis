@@ -7,14 +7,11 @@ from pdf2image import convert_from_path
 import pytesseract
 import requests
 
-# Configure Flask app
 app = Flask(__name__)
 
-# Set Tesseract command path
-pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
-
-# Poppler path
-POPPLER_PATH = "/usr/bin"
+# Let PATH find the tesseract binary instead of hardcoding full path.
+pytesseract.pytesseract.tesseract_cmd = "tesseract"
+POPPLER_PATH = "/usr/bin"  # This remains as a helper for pdf2image
 
 def call_huggingface_inference(prompt):
     HF_TOKEN = os.environ.get("HF_TOKEN")
@@ -33,10 +30,8 @@ def call_huggingface_inference(prompt):
     }
 
     response = requests.post(API_URL, headers=headers, json=payload)
-
     if response.status_code != 200:
         raise Exception(f"Request failed: {response.status_code}, {response.text}")
-
     response_data = response.json()
     try:
         return response_data["choices"][0]["message"]
@@ -46,28 +41,27 @@ def call_huggingface_inference(prompt):
 @app.route("/healthcheck", methods=["GET"])
 def healthcheck():
     try:
-        # Check Tesseract
+        # Run 'tesseract --version' via the shell so that flags are correctly parsed.
         tesseract_output = subprocess.run(
-            [pytesseract.pytesseract.tesseract_cmd, "--version"],
+            "tesseract --version",
+            shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=True
         )
-
-        # Check Poppler (using pdfinfo as a proxy)
+        # Run 'pdfinfo --version' similarly via the shell.
         poppler_output = subprocess.run(
-            [os.path.join(POPPLER_PATH, "pdfinfo"), "--version"],
+            "pdfinfo --version",
+            shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=True
         )
-
         return jsonify({
             "tesseract": tesseract_output.stdout.decode().strip(),
             "poppler": poppler_output.stdout.decode().strip(),
             "status": "OK"
         })
-
     except subprocess.CalledProcessError as e:
         return jsonify({
             "error": "One or more dependencies are not installed correctly.",
