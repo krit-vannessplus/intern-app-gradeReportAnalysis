@@ -1,8 +1,13 @@
-# Use an official Python image
+# Use a stable Python base image
 FROM python:3.10-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
+    build-essential \
     tesseract-ocr \
     poppler-utils \
     libglib2.0-0 \
@@ -14,14 +19,15 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy app files
+# Copy project files
 COPY . /app
 
 # Install Python dependencies
+RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port
+# Expose the port Flask will run on
 EXPOSE 5000
 
-# Run the app
+# Run the Flask app
 CMD ["python", "app.py"]
