@@ -43,20 +43,19 @@ def healthcheck():
     try:
         # Run 'tesseract --version' via the shell so that flags are correctly parsed.
         tesseract_output = subprocess.run(
-            "tesseract --version",
-            shell=True,
+            ["tesseract", "--version"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=True
         )
         # Run 'pdfinfo --version' similarly via the shell.
-        poppler_output = subprocess.run(
-            "pdfinfo --version",
-            shell=True,
+        # new
+        poppler_output = subprocess.run(["pdfinfo", "-v"],      # <- use -v instead of --version
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=True
         )
+        
         return jsonify({
             "tesseract": tesseract_output.stdout.decode().strip(),
             "poppler": poppler_output.stdout.decode().strip(),
