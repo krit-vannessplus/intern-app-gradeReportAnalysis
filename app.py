@@ -6,6 +6,7 @@ from flask import Flask, request, jsonify
 from pdf2image import convert_from_path
 import pytesseract
 import requests
+import time
 
 app = Flask(__name__)
 
@@ -69,6 +70,7 @@ def healthcheck():
 
 @app.route("/analyze", methods=["POST"])
 def analyze_pdf():
+    start =  time.time()
     file = request.files.get("file")
     if not file:
         return jsonify({"error": "No file uploaded."}), 400
@@ -106,7 +108,7 @@ def analyze_pdf():
         result = json.loads(generated_response) if isinstance(generated_response, str) else generated_response
     except Exception as e:
         return jsonify({"error": f"Error from Hugging Face inference: {str(e)}"}), 500
-
+    print("Processing time (e):", time.time() - start)
     return jsonify(result)
 
 if __name__ == "__main__":
